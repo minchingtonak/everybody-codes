@@ -1,9 +1,23 @@
 import "go:fmt"
+import "go:strconv"
 
 import q1 "quests/one"
+import q2 "quests/two"
 
 fn main() {
-  for (idx, solution) in [q1.part1_solution, q1.part2_solution, q1.part3_solution].enumerate() {
-    fmt.Printf("Part %d: %d pinecones\n", idx + 1, solution())
+  fmt.Println("Quest 1")
+  for (idx, solution) in [
+    q1.part1_solution,
+    q1.part2_solution,
+    q1.part3_solution,
+  ].enumerate() {
+    fmt.Println(f"Part {idx + 1}: {solution()} pinecones")
   }
+
+  fmt.Println("Quest 2")
+  let part1_result = match q2.part1_solution() {
+    Result.Ok(checksum) => strconv.Itoa(checksum),
+    Result.Err(err) => err.Error()
+  }
+  fmt.Println("Part 1:", part1_result)
 }
