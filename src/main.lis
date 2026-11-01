@@ -1,0 +1,9 @@
+import "go:fmt"
+
+import q1 "quests/one"
+
+fn main() {
+  for (idx, solution) in [q1.part1_solution, q1.part2_solution, q1.part3_solution].enumerate() {
+    fmt.Printf("Part %d: %d pinecones\n", idx + 1, solution())
+  }
+}

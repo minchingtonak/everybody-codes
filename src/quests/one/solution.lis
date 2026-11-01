@@ -1,0 +1,84 @@
+import "go:math"
+
+fn collect_results(
+  input: Slice<int>,
+  pinecones_to_frame_size: fn(int) -> float64,
+  frame_size_to_pinecones: fn(int) -> int,
+) -> int {
+  let mut total = 0
+  for pinecones in input {
+    let rounded_result = math.Ceil(pinecones_to_frame_size(pinecones)) as int
+
+    total += frame_size_to_pinecones(rounded_result) - pinecones
+  }
+
+  total
+}
+
+pub fn part1_solution() -> int {
+  // for each outpost in the input, find the nearest square >= the input
+  // take the difference of the square and the input, add to total answer
+  // naive: linear iteration through squares until we find one >= the input
+  // better: take the sqrt, round up to nearest int, square the result
+  let outposts = get_part1_input()
+
+  let pinecones_to_frame_size = |pinecones: int| -> float64 {
+    math.Sqrt(pinecones as float64)
+  }
+
+  let frame_size_to_pinecones = |size: int| -> int {
+    size * size
+  }
+
+  collect_results(
+    outposts.to_slice(),
+    pinecones_to_frame_size,
+    frame_size_to_pinecones,
+  )
+}
+
+pub fn part2_solution() -> int {
+  let outposts = get_part2_input()
+
+  let pinecones_to_frame_size = |pinecones: int| -> float64 {
+    match pinecones {
+      p if p < 8 => 3,
+      p => (p as float64 / 4) + 1,
+    }
+  }
+
+  let frame_size_to_pinecones = |size: int| -> int {
+    2 * size + ((size - 2) * 2)
+  }
+
+  collect_results(
+    outposts.to_slice(),
+    pinecones_to_frame_size,
+    frame_size_to_pinecones,
+  )
+}
+
+// correct answer: 654713
+pub fn part3_solution() -> int {
+  let outposts = get_part3_input()
+
+  let pinecones_to_frame_size = |pinecones: int| -> float64 {
+    let potential_size = math.Ceil(math.Sqrt(pinecones as float64 + 1))
+
+    if potential_size as int % 2 == 0 {
+      potential_size + 1
+    } else {
+      potential_size
+    }
+  }
+
+  let frame_size_to_pinecones = |size: int| -> int {
+    (size * size) - 1
+  }
+
+  collect_results(
+    outposts.to_slice(),
+    pinecones_to_frame_size,
+    frame_size_to_pinecones,
+  )
+}
