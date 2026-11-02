@@ -4,26 +4,21 @@ import "go:slices"
 import "go:strconv"
 import "go:strings"
 
+// correct answer: 332034
 pub fn part1_solution() -> Result<int, error> {
   let blade_comparisons = get_part1_input()
 
-  let rows = strings.Split(blade_comparisons, "\n")
+  let triplet_rows = parse_input(blade_comparisons)?
 
   let mut checksum = 0
-  // parse input
-  // split by spaces, then split each triplet into three chars
-  for line in rows {
-    let triplets = strings.Split(line, " ")
+  for row in triplet_rows {
     let mut counts = Array.new<int, 5>()
-    for triplet in triplets {
-      let [l, op, r] = strings.Split(triplet, "") else {
-        return Result.Err(errors.New("triplet is not 3 characters"))
+    for triplet in row {
+      if triplet.op == Operation.GreaterThan {
+        counts[triplet.left - 1] += 1
+      } else {
+        counts[triplet.right - 1] += 1
       }
-
-      let l_idx = (strconv.Atoi(l)?) - 1
-      let r_idx = (strconv.Atoi(r)?) - 1
-
-      if op == ">" { counts[l_idx] += 1 } else { counts[r_idx] += 1 }
     }
 
     let mut indices = Slice.make<int>(counts.length())
@@ -33,10 +28,51 @@ pub fn part1_solution() -> Result<int, error> {
 
     slices.SortStableFunc(indices, |a, b| cmp.Compare(counts[b], counts[a]))
 
-    let joined = strings.Join(indices.map(|idx| strconv.Itoa(idx + 1)), "")
+    let joined = indices.map(|idx| strconv.Itoa(idx + 1)).join("")
 
     checksum += strconv.Atoi(joined)?
   }
 
   Result.Ok(checksum)
+}
+
+enum Operation {
+  LessThan,
+  GreaterThan,
+}
+
+struct Triplet { left: int, op: Operation, right: int }
+
+type TripletMatrix = Slice<Slice<Triplet>>
+
+type ParseResult = Result<TripletMatrix, error>
+
+fn parse_input(input: string) -> ParseResult {
+  let rows = strings.Split(input, "\n")
+
+  let mut results: TripletMatrix = Slice.new().reserve(rows.length())
+  for line in rows {
+    let triplets = strings.Split(line, " ")
+    let mut row_result = Slice.new<Triplet>().reserve(triplets.length())
+    for triplet in triplets {
+      let [l, op, r] = strings.Split(triplet, "") else {
+        return Result.Err(errors.New("triplet is not 3 characters"))
+      }
+
+      let op = match op {
+        ">" => Operation.GreaterThan,
+        "<" => Operation.LessThan,
+        _ => {
+          return Result.Err(errors.New(f"operator '{op}' is invalid"))
+        },
+      }
+      row_result = row_result.append(
+        Triplet { op, left: strconv.Atoi(l)?, right: strconv.Atoi(r)? },
+      )
+    }
+
+    results = results.append(row_result)
+  }
+
+  Result.Ok(results)
 }
