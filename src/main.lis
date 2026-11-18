@@ -1,5 +1,4 @@
 import "go:fmt"
-import "go:strconv"
 
 import q1 "quests/one"
 import q2 "quests/two"
@@ -14,10 +13,15 @@ fn main() {
     fmt.Println(f"Part {idx + 1}: {solution()} pinecones")
   }
 
+  if let Result.Err(e) = quest2() { fmt.Println(e.Error()) }
+}
+
+fn quest2() -> Result<int, error> {
   fmt.Println("Quest 2")
-  let part1_result = match q2.part1_solution() {
-    Result.Ok(checksum) => strconv.Itoa(checksum),
-    Result.Err(err) => err.Error()
+  for (idx, solution) in [q2.part1_solution, q2.part2_solution].enumerate() {
+    fmt.Println(f"Part {idx + 1} checksum: {solution()?}")
   }
-  fmt.Println("Part 1:", part1_result)
+
+  // don't love this
+  Result.Ok(0)
 }

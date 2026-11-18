@@ -12,21 +12,88 @@ pub fn part1_solution() -> Result<int, error> {
 
   let mut checksum = 0
   for row in triplet_rows {
-    let mut counts = Array.new<int, 5>()
+    let mut out_degrees = Array.new<int, 5>()
     for triplet in row {
       if triplet.op == Operation.GreaterThan {
-        counts[triplet.left - 1] += 1
+        out_degrees[triplet.left - 1] += 1
       } else {
-        counts[triplet.right - 1] += 1
+        out_degrees[triplet.right - 1] += 1
       }
     }
 
-    let mut indices = Slice.make<int>(counts.length())
+    let mut indices = Slice.make<int>(out_degrees.length())
     for idx in 0..indices.length() {
       indices[idx] = idx
     }
 
-    slices.SortStableFunc(indices, |a, b| cmp.Compare(counts[b], counts[a]))
+    slices.SortStableFunc(indices, |a, b| cmp.Compare(
+      // sort in reverse order of out degree (i.e. by in degree)
+      out_degrees[b],
+      out_degrees[a],
+    ))
+
+    let joined = indices.map(|idx| strconv.Itoa(idx + 1)).join("")
+
+    checksum += strconv.Atoi(joined)?
+  }
+
+  Result.Ok(checksum)
+}
+
+#[display]
+struct Node<T> { value: T, in_deg: int, out_deg: int }
+
+const NUMBER_OF_AXES = 9
+
+pub fn part2_solution() -> Result<int, error> {
+  let blade_comparisons = get_part2_input()
+
+  let triplet_rows = parse_input(blade_comparisons)?
+
+  let mut checksum = 0
+  for row in triplet_rows {
+    let mut nodes = Array.new<Node<int>, NUMBER_OF_AXES>()
+    for i in 0..NUMBER_OF_AXES {
+      nodes[i].value = i + 1
+    }
+
+    for triplet in row {
+      if triplet.op == Operation.GreaterThan {
+        // edge from left to right
+        // left gets outdeg+1, right gets indeg+1
+        nodes[triplet.left - 1].out_deg += 1
+        nodes[triplet.right - 1].in_deg += 1
+      } else {
+        // edge from right to left
+        nodes[triplet.right - 1].out_deg += 1
+        nodes[triplet.left - 1].in_deg += 1
+      }
+    }
+
+    // derive missing edge
+    let a = nodes
+      .to_slice()
+      .find(|n| n.in_deg == 0)
+      .ok_or_else(|| errors.New("found no a"))?
+    let b = nodes
+      .to_slice()
+      .find(|n| n.out_deg == 0)
+      .ok_or_else(|| errors.New("found no b"))?
+
+
+    // missing edge is a>b
+    nodes[a.value - 1].out_deg += 1
+    nodes[b.value - 1].in_deg += 1
+
+    let mut indices = Slice.make<int>(nodes.length())
+    for idx in 0..indices.length() {
+      indices[idx] = idx
+    }
+
+    slices.SortStableFunc(indices, |x, y| cmp.Compare(
+      nodes[x].in_deg,
+      nodes[y].in_deg,
+    ))
 
     let joined = indices.map(|idx| strconv.Itoa(idx + 1)).join("")
 
@@ -41,7 +108,19 @@ enum Operation {
   GreaterThan,
 }
 
+impl Operation {
+  fn to_string(self) -> string {
+    if self == Operation.GreaterThan { ">" } else { "<" }
+  }
+}
+
 struct Triplet { left: int, op: Operation, right: int }
+
+impl Triplet {
+  fn to_string(self) -> string {
+    f"({self.left}{self.op.to_string()}{self.right})"
+  }
+}
 
 type TripletMatrix = Slice<Slice<Triplet>>
 
