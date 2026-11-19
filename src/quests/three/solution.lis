@@ -1,0 +1,63 @@
+import "go:strconv"
+import "go:strings"
+
+pub fn part1_solution() -> Result<int, error> {
+  let votes = get_part1_input()
+
+  let parsed_votes = parse_input(votes)?
+
+  Result.Ok(parsed_votes.map(|v| v.to_decimal()).fold(0, |acc, curr| acc + curr))
+}
+
+#[display]
+struct IsoNumber { base: (int, int, int, int), digits: (int, int, int, int) }
+
+impl IsoNumber {
+  fn to_decimal(self) -> int {
+    self.digits.0 * pow(self.base.0, 3) + self.digits.1 * pow(self.base.1, 2) +
+    self.digits.2 * self.base.2 +
+    self.digits.3
+  }
+}
+
+fn pow(base: int, exp: int) -> int {
+  if exp == 0 { return 1 }
+
+  let mut result = base
+  for _ in 1..exp {
+    result *= base
+  }
+
+  result
+}
+
+fn parse_input(input: string) -> Result<Slice<IsoNumber>, error> {
+  let input_numbers = strings.Split(input, "\n")
+
+  let mut numbers = Slice.new<IsoNumber>()
+  // ISO-3210 7654
+  for number in input_numbers {
+    let split_number = strings.Split(number, " ")
+    let base = strings.Split(strings.Split(split_number[0], "-")[1], "")
+    let num = strings.Split(split_number[1], "")
+
+    numbers = numbers.append(
+      IsoNumber {
+        base: (
+          strconv.Atoi(base[0])?,
+          strconv.Atoi(base[1])?,
+          strconv.Atoi(base[2])?,
+          strconv.Atoi(base[3])?,
+        ),
+        digits: (
+          strconv.Atoi(num[0])?,
+          strconv.Atoi(num[1])?,
+          strconv.Atoi(num[2])?,
+          strconv.Atoi(num[3])?,
+        ),
+      },
+    )
+  }
+
+  Result.Ok(numbers)
+}

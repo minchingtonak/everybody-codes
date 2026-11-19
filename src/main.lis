@@ -2,6 +2,7 @@ import "go:fmt"
 
 import q1 "quests/one"
 import q2 "quests/two"
+import q3 "quests/three"
 
 fn main() {
   fmt.Println("Quest 1")
@@ -14,6 +15,8 @@ fn main() {
   }
 
   if let Result.Err(e) = quest2() { fmt.Println(e.Error()) }
+
+  if let Result.Err(e) = quest3() { fmt.Println(e.Error()) }
 }
 
 fn quest2() -> Result<int, error> {
@@ -23,5 +26,14 @@ fn quest2() -> Result<int, error> {
   }
 
   // don't love this
+  Result.Ok(0)
+}
+
+fn quest3() -> Result<int, error> {
+  fmt.Println("Quest 3")
+  for (idx, solution) in [q3.part1_solution].enumerate() {
+    fmt.Println(f"Part {idx + 1}: {solution()?}")
+  }
+
   Result.Ok(0)
 }
