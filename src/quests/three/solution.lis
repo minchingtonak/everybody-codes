@@ -1,3 +1,4 @@
+import "go:fmt"
 import "go:strconv"
 import "go:strings"
 
@@ -9,14 +10,37 @@ pub fn part1_solution() -> Result<int, error> {
   Result.Ok(parsed_votes.map(|v| v.to_decimal()).fold(0, |acc, curr| acc + curr))
 }
 
+pub fn part2_solution() -> Result<int, error> {
+  let votes = get_part2_input()
+
+  let parsed_votes = parse_input(votes)?
+
+  Result.Ok(parsed_votes.map(|v| v.to_decimal()).fold(0, |acc, curr| acc + curr))
+}
+
 #[display]
-struct IsoNumber { base: (int, int, int, int), digits: (int, int, int, int) }
+struct IsoNumber { base: Slice<int>, digits: Slice<int> }
 
 impl IsoNumber {
   fn to_decimal(self) -> int {
-    self.digits.0 * pow(self.base.0, 3) + self.digits.1 * pow(self.base.1, 2) +
-    self.digits.2 * self.base.2 +
-    self.digits.3
+    // TODO fix code to properly repeat from right to left
+    // ISO-13 777 -> ISO-313 777
+    // ISO-789 2465112 -> ISO-9789789 2465112
+    let mut result = 0
+    for (idx, digit) in self.digits.enumerate() {
+      let base = self.base[idx % self.base.length()]
+      let exp = self.digits.length() - (idx + 1)
+
+      fmt.Println(f"{idx % self.base.length()}")
+      fmt.Println(f"{digit}*{base}^{exp}")
+
+      result += (digit *
+      pow(self.base[idx % self.base.length()], self.digits.length() - (idx + 1)))
+    }
+    fmt.Println(f"={result}")
+    fmt.Println()
+
+    result
   }
 }
 
@@ -41,21 +65,18 @@ fn parse_input(input: string) -> Result<Slice<IsoNumber>, error> {
     let base = strings.Split(strings.Split(split_number[0], "-")[1], "")
     let num = strings.Split(split_number[1], "")
 
+    let mut converted_base = Slice.new<int>()
+    for digit in base {
+      converted_base = converted_base.append(strconv.Atoi(digit)?)
+    }
+
+    let mut converted_num = Slice.new<int>()
+    for digit in num {
+      converted_num = converted_num.append(strconv.Atoi(digit)?)
+    }
+
     numbers = numbers.append(
-      IsoNumber {
-        base: (
-          strconv.Atoi(base[0])?,
-          strconv.Atoi(base[1])?,
-          strconv.Atoi(base[2])?,
-          strconv.Atoi(base[3])?,
-        ),
-        digits: (
-          strconv.Atoi(num[0])?,
-          strconv.Atoi(num[1])?,
-          strconv.Atoi(num[2])?,
-          strconv.Atoi(num[3])?,
-        ),
-      },
+      IsoNumber { base: converted_base, digits: converted_num },
     )
   }
 
