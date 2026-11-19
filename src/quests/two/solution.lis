@@ -4,7 +4,6 @@ import "go:slices"
 import "go:strconv"
 import "go:strings"
 
-// correct answer: 332034
 pub fn part1_solution() -> Result<int, error> {
   let blade_comparisons = get_part1_input()
 
@@ -52,7 +51,7 @@ pub fn part2_solution() -> Result<int, error> {
 
   let mut checksum = 0
   for row in triplet_rows {
-    let mut nodes = Array.new<Node<int>, NUMBER_OF_AXES>()
+    let mut nodes = Slice.make<Node<int>>(NUMBER_OF_AXES)
     for i in 0..NUMBER_OF_AXES {
       nodes[i].value = i + 1
     }
@@ -72,11 +71,9 @@ pub fn part2_solution() -> Result<int, error> {
 
     // derive missing edge
     let a = nodes
-      .to_slice()
       .find(|n| n.in_deg == 0)
       .ok_or_else(|| errors.New("found no a"))?
     let b = nodes
-      .to_slice()
       .find(|n| n.out_deg == 0)
       .ok_or_else(|| errors.New("found no b"))?
 
