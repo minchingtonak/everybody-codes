@@ -31,7 +31,7 @@ fn quest2() -> Result<int, error> {
 
 fn quest3() -> Result<int, error> {
   fmt.Println("Quest 3")
-  for (idx, solution) in [q3.part1_solution].enumerate() {
+  for (idx, solution) in [q3.part1_solution, q3.part2_solution].enumerate() {
     fmt.Println(f"Part {idx + 1}: {solution()?}")
   }
 
