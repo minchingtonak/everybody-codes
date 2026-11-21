@@ -1,25 +1,40 @@
 import "go:fmt"
+import "go:math"
+import "go:slices"
 import "go:strconv"
 import "go:strings"
+
+fn part1_2_solution(votes: string) -> Result<int, error> {
+  let parsed_votes = parse_input(votes)?
+
+  Result.Ok(parsed_votes.map(|v| v.to_decimal()).fold(0, |acc, curr| acc + curr))
+}
 
 pub fn part1_solution() -> Result<int, error> {
   let votes = get_part1_input()
 
-  let parsed_votes = parse_input(votes)?
-
-  Result.Ok(parsed_votes.map(|v| v.to_decimal()).fold(0, |acc, curr| acc + curr))
+  part1_2_solution(votes)
 }
 
 pub fn part2_solution() -> Result<int, error> {
   let votes = get_part2_input()
 
+  part1_2_solution(votes)
+}
+
+pub fn part3_solution() -> Result<int, error> {
+  let votes = get_part3_input()
+
   let parsed_votes = parse_input(votes)?
 
-  Result.Ok(parsed_votes.map(|v| v.to_decimal()).fold(0, |acc, curr| acc + curr))
+  Result.Ok(parsed_votes
+    .filter(|v| v.is_smallest())
+    .map(|v| v.to_decimal())
+    .fold(0, |acc, curr| acc + curr))
 }
 
 #[display]
-struct IsoNumber { base: Slice<int>, digits: Slice<int> }
+struct IsoNumber { version: int, base: Slice<int>, digits: Slice<int> }
 
 impl IsoNumber {
   fn to_decimal(self) -> int {
@@ -49,6 +64,34 @@ impl IsoNumber {
 
     result
   }
+
+  fn digits_as_decimal(self) -> int {
+    let mut exp = self.digits.length() - 1
+    let mut result = 0
+    for digit in self.digits {
+      result += digit * pow(10, exp)
+      exp -= 1
+    }
+
+    result
+  }
+
+  fn is_smallest(self) -> bool {
+    if self.version != 2 { return true }
+
+    let decimal = self.to_decimal()
+    let digits = self.digits_as_decimal()
+    for offset in 0..(digits - 1) {
+      let i = digits - 1 - offset
+      let num = IsoNumber {
+        version: 2,
+        base: self.base,
+        digits: int_to_slice(i),
+      }
+      if num.to_decimal() == decimal { return false }
+    }
+    true
+  }
 }
 
 // % in Go is the remainder, not modulo
@@ -71,14 +114,29 @@ fn pow(base: int, exp: int) -> int {
   result
 }
 
+fn int_to_slice(num: int) -> Slice<int> {
+  let mut result = Slice.make<int>(f"{num}".length())
+  let mut n = num
+
+  for i in 1..=f"{num}".length() {
+    let digit = n % 10
+    result[result.length() - i] = digit
+    n /= 10
+  }
+
+  result
+}
+
 fn parse_input(input: string) -> Result<Slice<IsoNumber>, error> {
   let input_numbers = strings.Split(input, "\n")
 
   let mut numbers = Slice.new<IsoNumber>()
   // ISO-3210 7654
+  // ISO2-978 99
   for number in input_numbers {
     let split_number = strings.Split(number, " ")
-    let base = strings.Split(strings.Split(split_number[0], "-")[1], "")
+    let base_iso = strings.Split(split_number[0], "-")
+    let base = strings.Split(base_iso[1], "")
     let num = strings.Split(split_number[1], "")
 
     let mut converted_base = Slice.new<int>()
@@ -91,8 +149,9 @@ fn parse_input(input: string) -> Result<Slice<IsoNumber>, error> {
       converted_num = converted_num.append(strconv.Atoi(digit)?)
     }
 
+    let version = if base_iso[0].length() == 3 { 1 } else { 2 }
     numbers = numbers.append(
-      IsoNumber { base: converted_base, digits: converted_num },
+      IsoNumber { version, base: converted_base, digits: converted_num },
     )
   }
 
